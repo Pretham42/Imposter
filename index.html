@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>IMPOSTER</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a40;
+    --accent: #ff3c5f;
+    --accent2: #ffcc00;
+    --accent3: #00e5ff;
+    --text: #f0f0f8;
+    --muted: #6a6a8a;
+    --success: #00e5a0;
+    --radius: 12px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+
+  /* noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.5;
+  }
+
+  .screen { display: none; flex-direction: column; align-items: center; min-height: 100svh; padding: 20px 18px calc(20px + var(--safe-bottom)); padding-top: calc(20px + var(--safe-top)); }
+  .screen.active { display: flex; }
+
+  /* ─── HEADER ─── */
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(64px, 18vw, 120px);
+    letter-spacing: 8px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 40px rgba(255,60,95,0.4));
+    text-align: center;
+  }
+
+  .tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.12s ease;
+    width: 100%;
+    min-height: 54px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-primary:active { background: #e02a50; }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:active { border-color: var(--accent); color: var(--accent); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-size: 11px;
+  }
+  .btn-ghost:active { color: var(--text); border-color: var(--muted); }
+
+  .btn-yellow {
+    background: var(--accent2);
+    color: #0a0a0f;
+  }
+  .btn-yellow:active { background: #e6b800; }
+
+  .btn-cyan {
+    background: var(--accent3);
+    color: #0a0a0f;
+  }
+  .btn-cyan:hover { background: #33eaff; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,229,255,0.3); }
+
+  /* ─── INPUTS ─── */
+  .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .input-label { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+
+  input[type="text"], input[type="number"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    padding: 14px 16px;
+    -webkit-appearance: none;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  /* ─── SLIDERS ─── */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .slider-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    line-height: 1;
+    min-width: 44px;
+    text-align: center;
+    flex-shrink: 0;
+    letter-spacing: 1px;
+  }
+  .slider-val.yellow { color: var(--accent2); filter: drop-shadow(0 0 8px rgba(255,204,0,0.4)); }
+  .slider-val.red    { color: var(--accent);  filter: drop-shadow(0 0 8px rgba(255,60,95,0.4)); }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 6px;
+    border-radius: 99px;
+    outline: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  input[type="range"]:active { opacity: 0.9; }
+
+  /* yellow thumb — players */
+  #playerSlider {
+    background: linear-gradient(to right, var(--accent2) 0%, var(--accent2) 33%, var(--border) 33%, var(--border) 100%);
+  }
+  #playerSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent2);
+    cursor: pointer;
+    box-shadow: 0 0 0 5px rgba(255,204,0,0.18), 0 2px 8px rgba(0,0,0,0.4);
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  #playerSlider:active::-webkit-slider-thumb {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 8px rgba(255,204,0,0.22), 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  /* red thumb — imposters */
+  #imposterSlider {
+    background: linear-gradient(to right, var(--accent) 0%, var(--accent) 0%, var(--border) 0%, var(--border) 100%);
+  }
+  #imposterSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 0 5px rgba(255,60,95,0.18), 0 2px 8px rgba(0,0,0,0.4);
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  #imposterSlider:active::-webkit-slider-thumb {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 8px rgba(255,60,95,0.22), 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  /* ─── CATEGORY GRID ─── */
+  .cat-btn {
+    padding: 14px 6px;
+    min-height: 64px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.12s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .cat-btn .cat-icon { font-size: 20px; }
+  .cat-btn:active { transform: scale(0.94); }
+  .cat-btn.selected {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    background: rgba(255,204,0,0.09);
+  }
+
+  /* ─── HINT MODE PILLS ─── */
+  .mode-grid { display: flex; flex-direction: column; gap: 8px; }
+
+  .mode-btn {
+    padding: 15px 16px;
+    min-height: 64px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .mode-btn .mode-icon { font-size: 20px; flex-shrink: 0; }
+  .mode-btn .mode-desc { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; font-family: 'DM Sans', sans-serif; }
+  .mode-btn:active { transform: scale(0.98); }
+  .mode-btn.selected { border-color: var(--accent3); color: var(--accent3); background: rgba(0,229,255,0.06); }
+  .mode-btn.selected .mode-desc { color: rgba(0,229,255,0.6); }
+
+  /* ─── PLAYER NAMES ─── */
+  .player-list { display: flex; flex-direction: column; gap: 8px; }
+  .player-row { display: flex; align-items: center; gap: 8px; }
+  .player-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--accent);
+    min-width: 28px;
+    text-align: right;
+  }
+
+  /* ─── PASS SCREEN ─── */
+  #passScreen {
+    justify-content: center;
+    text-align: center;
+    gap: 28px;
+  }
+
+  .pass-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    color: white;
+    margin: 0 auto;
+    box-shadow: 0 0 40px rgba(255,60,95,0.3);
+  }
+
+  .pass-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    line-height: 1;
+    letter-spacing: 3px;
+  }
+
+  .pass-instruction {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  /* ─── REVEAL SCREEN ─── */
+  #revealScreen { justify-content: center; text-align: center; gap: 20px; }
+
+  .reveal-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .reveal-role {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(56px, 16vw, 88px);
+    line-height: 1;
+    letter-spacing: 4px;
+  }
+  .reveal-role.crewmate { color: var(--success); filter: drop-shadow(0 0 30px rgba(0,229,160,0.4)); }
+  .reveal-role.imposter { color: var(--accent); filter: drop-shadow(0 0 30px rgba(255,60,95,0.5)); }
+
+  .reveal-word-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 28px;
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .reveal-word {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 38px;
+    letter-spacing: 3px;
+    line-height: 1.1;
+  }
+  .reveal-word.crewmate-word { color: var(--text); }
+  .reveal-word.imposter-word { color: var(--accent2); }
+
+  .reveal-hint-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 14px;
+    margin-bottom: 4px;
+  }
+
+  .reveal-hint {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--accent3);
+  }
+
+  .reveal-instruction {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 320px;
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-bar-wrap {
+    width: 100%;
+    max-width: 380px;
+    background: var(--border);
+    border-radius: 99px;
+    height: 4px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width 0.3s ease;
+  }
+
+  /* ─── COVER SCREEN ─── */
+  #coverScreen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    text-align: center;
+    padding: 28px 24px calc(28px + var(--safe-bottom));
+    padding-top: calc(28px + var(--safe-top));
+  }
+  #coverScreen.active { display: flex; }
+
+  .cover-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 6px;
+    color: var(--muted);
+  }
+
+  .cover-icon {
+    font-size: 64px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.8; }
+  }
+
+  .cover-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 3px;
+    line-height: 1.1;
+  }
+
+  .cover-sub {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 280px;
+    line-height: 1.6;
+  }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    width: 100%;
+    max-width: 480px;
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  /* ─── SECTION SPACING ─── */
+  .stack { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 480px; }
+  .stack-sm { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 480px; }
+
+  /* ─── BADGE ─── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,60,95,0.12);
+    border: 1px solid rgba(255,60,95,0.3);
+    border-radius: 99px;
+    padding: 4px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+  .fadeUp { animation: fadeUp 0.4s ease both; }
+  .shake { animation: shake 0.4s ease; }
+
+
+  /* ─── ALL DONE GATE ─── */
+  #allDoneScreen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    text-align: center;
+    padding: 28px 24px calc(28px + var(--safe-bottom));
+    padding-top: calc(28px + var(--safe-top));
+  }
+  #allDoneScreen.active { display: flex; }
+
+  /* ─── GREEN BUTTON ─── */
+  .btn-green { background: var(--success); color: #0a0a0f; }
+  .btn-green:active { background: #00cc8e; }
+
+  /* ─── SUMMARY SCREEN ─── */
+  #summaryScreen { justify-content: flex-start; text-align: center; gap: 20px; padding-top: 40px; }
+
+  .summary-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px;
+    letter-spacing: 4px;
+    line-height: 1;
+  }
+
+  .player-summary-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 480px; }
+
+  .player-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+  .player-summary-name { font-weight: 600; font-size: 15px; }
+  .player-summary-role {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    text-transform: uppercase;
+  }
+  .role-imposter { background: rgba(255,60,95,0.15); color: var(--accent); border: 1px solid rgba(255,60,95,0.3); }
+  .role-crewmate { background: rgba(0,229,160,0.1); color: var(--success); border: 1px solid rgba(0,229,160,0.2); }
+
+  .word-reveal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    width: 100%;
+    max-width: 480px;
+  }
+  .word-reveal-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .word-reveal-word { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 3px; color: var(--accent2); }
+
+  /* ─── SCROLL ─── */
+  .scrollable { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ─── BACK BTN ─── */
+  .back-btn {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    text-transform: uppercase;
+  }
+  .back-btn:hover { color: var(--text); }
+
+  /* ─── CHARADES MODE SPECIAL ─── */
+  .charades-banner {
+    background: linear-gradient(135deg, rgba(255,60,95,0.12), rgba(255,204,0,0.08));
+    border: 1px solid rgba(255,60,95,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    text-align: center;
+    max-width: 380px;
+  }
+  .charades-banner strong { color: var(--accent2); }
+
+  /* ─── IMPOSTER SCREAM ─── */
+  @keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-3px, 1px); }
+    40% { transform: translate(3px, -1px); }
+    60% { transform: translate(-2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+  }
+  .glitch { animation: glitch 0.3s steps(1) 3; }
+
+  /* hide scrollbars but allow scroll */
+  ::-webkit-scrollbar { width: 0px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ SCREEN: HOME ═══════════════════════════════ -->
+<div class="screen active" id="homeScreen">
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:32px; width:100%; max-width:480px;">
+    <div>
+      <div class="logo">IMPOSTER</div>
+      <div class="tagline">// pass &amp; play social deduction</div>
+    </div>
+    <div class="stack">
+      <button class="btn btn-primary" onclick="goTo('setupScreen')">▶ &nbsp;New Game</button>
+      <button class="btn btn-ghost" onclick="goTo('howToScreen')">How to Play</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SCREEN: HOW TO PLAY ═══════════════════════════════ -->
+<div class="screen" id="howToScreen" style="gap:20px; padding-top:32px;">
+  <div style="width:100%;max-width:480px;">
+    <button class="back-btn" onclick="goTo('homeScreen')">← Back</button>
+  </div>
+  <div class="logo" style="font-size:48px;">HOW TO PLAY</div>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-title">The Setup</div>
+      <p style="font-size:14px;color:#ccc;line-height:1.7;">Everyone gets a word. One or more players are secretly the <span style="color:var(--accent);font-weight:600;">Imposter</span> — they get a cryptic hint instead of the real word.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">The Hints</div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.6;color:#ccc;">
+        <div><span style="color:var(--accent2);font-weight:600;">Category</span> — The imposter only knows the broad category (e.g. "NBA").</div>
+        <div><span style="color:var(--accent2);font-weight:600;">Normal</span> — The imposter gets one sneaky word hint.</div>
+        <div><span style="color:var(--accent2);font-weight:600;">Charades</span> — No words allowed! Everyone acts/makes noises only.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">How to Win</div>
+      <p style="font-size:14px;color:#ccc;line-height:1.7;"><span style="color:var(--success);font-weight:600;">Crewmates</span> take turns giving one clue. Try to spot who doesn't actually know the word. Vote to eliminate the Imposter!</p>
+      <p style="font-size:14px;color:#ccc;line-height:1.7;margin-top:8px;"><span style="color:var(--accent);font-weight:600;">Imposters</span> blend in by giving convincing clues. If you survive the vote, you win!</p>
+    </div>
+  </div>
+
+  <div style="width:100%;max-width:480px;padding-bottom:24px;">
+    <button class="btn btn-primary" onclick="goTo('setupScreen')">Let's Play →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SCREEN: SETUP ═══════════════════════════════ -->
+<div class="screen" id="setupScreen" style="gap:16px; padding-top:24px; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+  <div style="width:100%;max-width:480px;">
+    <button class="back-btn" onclick="goTo('homeScreen')">← Back</button>
+  </div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:3px;text-align:center;">GAME SETUP</div>
+
+  <div class="stack">
+
+    <!-- Players count -->
+    <div class="card">
+      <div class="card-title">Number of Players</div>
+      <div class="slider-row">
+        <span class="slider-val yellow" id="playerCountVal">4</span>
+        <input type="range" id="playerSlider" min="3" max="30" value="4" oninput="updatePlayerCount()">
+      </div>
+    </div>
+
+    <!-- Imposters count -->
+    <div class="card">
+      <div class="card-title">Number of Imposters</div>
+      <div class="slider-row">
+        <span class="slider-val red" id="imposterCountVal">1</span>
+        <input type="range" id="imposterSlider" min="1" max="1" value="1" oninput="updateImposterCount()">
+      </div>
+    </div>
+
+    <!-- Hint Mode -->
+    <div class="card">
+      <div class="card-title">Imposter Hint Mode</div>
+      <div class="mode-grid">
+        <button class="mode-btn selected" data-mode="category" onclick="selectMode(this)">
+          <span class="mode-icon">🏷️</span>
+          <span>Category Only<span class="mode-desc">Imposter only knows the broad category</span></span>
+        </button>
+        <button class="mode-btn" data-mode="normal" onclick="selectMode(this)">
+          <span class="mode-icon">💬</span>
+          <span>Word Hint<span class="mode-desc">Imposter gets one cryptic word clue</span></span>
+        </button>
+        <button class="mode-btn" data-mode="charades" onclick="selectMode(this)">
+          <span class="mode-icon">🎭</span>
+          <span>Charades<span class="mode-desc">No words — act it out, make noises only</span></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;">Categories <span style="color:var(--muted);font-size:8px;letter-spacing:1px;">— select at least one</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <button class="cat-btn selected" data-cat="NBA" onclick="toggleCat(this)"><span class="cat-icon">🏀</span>NBA</button>
+        <button class="cat-btn selected" data-cat="Silly" onclick="toggleCat(this)"><span class="cat-icon">🤪</span>Silly</button>
+        <button class="cat-btn selected" data-cat="Animals" onclick="toggleCat(this)"><span class="cat-icon">🐾</span>Animals</button>
+        <button class="cat-btn selected" data-cat="Food" onclick="toggleCat(this)"><span class="cat-icon">🍔</span>Food</button>
+        <button class="cat-btn selected" data-cat="Objects" onclick="toggleCat(this)"><span class="cat-icon">🪑</span>Objects</button>
+        <button class="cat-btn selected" data-cat="School" onclick="toggleCat(this)"><span class="cat-icon">🎒</span>School</button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="goToNames()">Next: Enter Names →</button>
+  </div>
+  <div style="height:24px;"></div>
+</div>
+
+<!-- ═══════════════════════════════ SCREEN: NAMES ═══════════════════════════════ -->
+<div class="screen" id="namesScreen" style="gap:20px; padding-top:32px;">
+  <div style="width:100%;max-width:480px;">
+    <button class="back-btn" onclick="goTo('setupScreen')">← Back</button>
+  </div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:3px;text-align:center;">PLAYER NAMES</div>
+
+  <div class="card" style="max-width:480px;width:100%;">
+    <div class="card-title">Enter each player's name</div>
+    <div class="player-list" id="playerNameList"></div>
+  </div>
+
+  <div style="width:100%;max-width:480px;padding-bottom:24px;">
+    <button class="btn btn-primary" onclick="startGame()">Start Game →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SCREEN: PASS (hand phone) ═══════════════════════════════ -->
+<div class="screen" id="passScreen">
+  <div class="pass-avatar" id="passAvatar">?</div>
+  <div class="pass-name" id="passName">Player</div>
+  <p class="pass-instruction">Hand the phone to <strong id="passNameRepeat">this player</strong>.<br>They should look at the screen alone.</p>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+  </div>
+  <button class="btn btn-yellow" style="max-width:380px;" onclick="showReveal()">I'm ready 👁️</button>
+</div>
+
+<!-- ═══════════════════════════════ SCREEN: COVER (hide after reveal) ═══════════════════════════════ -->
+<div id="coverScreen">
+  <div class="cover-logo">IMPOSTER</div>
+  <div class="cover-icon">🫣</div>
+  <div class="cover-text">PASS THE<br>PHONE</div>
+  <p class="cover-sub">Hand the phone to the next player. Don't show the screen!</p>
+  <button class="btn btn-secondary" style="max-width:320px;" onclick="nextPlayer()">Next Player →</button>
+</div>
+
+<!-- ═══════════════════════════════ SCREEN: REVEAL ═══════════════════════════════ -->
+<div class="screen" id="revealScreen">
+  <div class="reveal-label">Your Role</div>
+  <div class="reveal-role" id="revealRole">CREWMATE</div>
+
+  <div class="reveal-word-box fadeUp" id="revealWordBox">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;" id="revealWordLabel">The Word</div>
+    <div class="reveal-word" id="revealWord">WORD</div>
+    <div class="reveal-hint-label" id="revealHintLabel" style="display:none;">Your Hint</div>
+    <div class="reveal-hint" id="revealHint" style="display:none;"></div>
+  </div>
+
+  <div id="revealCharadesBanner" class="charades-banner" style="display:none;">
+    🎭 <strong>Charades Mode!</strong> You may <strong>not say any words</strong>. Act it out or make noises only.
+  </div>
+
+  <p class="reveal-instruction" id="revealInstruction"></p>
+
+  <button class="btn btn-primary" style="max-width:380px;" onclick="hideToCover()">Done — Cover Screen 🙈</button>
+</div>
+
+
+<!-- ═══════════════════════════════ SCREEN: ALL DONE GATE ═══════════════════════════════ -->
+<div id="allDoneScreen">
+  <div style="font-size:64px;">🕵️</div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,12vw,60px);letter-spacing:4px;line-height:1;">EVERYONE'S<br>READY</div>
+  <p style="font-size:14px;color:var(--muted);line-height:1.7;max-width:300px;text-align:center;">All players have seen their role. Discuss and find the Imposter!</p>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 24px;max-width:340px;width:100%;text-align:center;">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Starting Player</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:var(--accent2);line-height:1;" id="startingPlayerName">—</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;">goes first — give your hint!</div>
+  </div>
+  <button class="btn btn-green" style="max-width:340px;margin-top:4px;" onclick="showSummary()">Reveal Roles 🔍</button>
+  <p style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;text-align:center;">Only tap after voting is done</p>
+</div>
+
+<!-- ═══════════════════════════════ SCREEN: SUMMARY ═══════════════════════════════ -->
+<div class="screen" id="summaryScreen">
+  <div style="width:100%;max-width:480px;">
+    <button class="back-btn" onclick="goTo('homeScreen')">← Home</button>
+  </div>
+  <div class="summary-title">GAME<br>SUMMARY</div>
+
+  <div class="word-reveal-box">
+    <div class="word-reveal-label">The Word Was</div>
+    <div class="word-reveal-word" id="summaryWord">—</div>
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-top:6px;" id="summaryCategory"></div>
+  </div>
+
+  <div class="player-summary-list" id="playerSummaryList"></div>
+
+  <div style="width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px;padding-bottom:32px;">
+    <button class="btn btn-primary" onclick="playAgainSameSettings()">Play Again (Same Settings)</button>
+    <button class="btn btn-secondary" onclick="goTo('setupScreen')">Change Settings</button>
+    <button class="btn btn-ghost" onclick="goTo('homeScreen')">Home</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  WORD DATA
+// ════════════════════════════════════════════════
+const WORDS = {
+  NBA: {
+    label: "NBA",
+    words: [
+      { word: "Wemby", normal: "Gangly", charades: "Skyscraper" },
+      { word: "Nikola Jokić", normal: "Methodical", charades: "Methodical" },
+      { word: "LeBron's Hairline", normal: "Receding", charades: "Forehead" },
+      { word: "Flagrant Foul", normal: "Intentional", charades: "Shove" },
+      { word: "Hack-a-Shaq", normal: "Deliberate", charades: "Foul" },
+      { word: "Curry's Mouthguard", normal: "Nervous", charades: "Chew" },
+      { word: "Russell Westbrook", normal: "Unhinged", charades: "Explosive" },
+      { word: "Alley-Oop", normal: "Aerial", charades: "Aerial" },
+      { word: "Trash Talk", normal: "Verbal", charades: "Yap" },
+      { word: "Shot Clock", normal: "Timed", charades: "Count" },
+      { word: "Triple Double", normal: "Statistical", charades: "Three" },
+      { word: "Air Ball", normal: "Missed", charades: "Whiff" },
+      { word: "Buzzer Beater", normal: "Last-second", charades: "Launch" },
+      { word: "Tech Foul", normal: "Ejected", charades: "Point" },
+      { word: "Fast Break", normal: "Transition", charades: "Sprint" },
+      { word: "The Paint", normal: "Zone", charades: "Crowd" },
+      { word: "Free Throw", normal: "Uncontested", charades: "Line" },
+      { word: "Dunk Contest", normal: "Athletic", charades: "Soar" },
+      { word: "Sixth Man", normal: "Reserve", charades: "Bench" },
+      { word: "Pick and Roll", normal: "Coordinated", charades: "Screen" },
+      { word: "Ankle Breaker", normal: "Crossover", charades: "Fall" },
+      { word: "Iso Ball", normal: "Selfish", charades: "Solo" },
+      { word: "Box Out", normal: "Physical", charades: "Wall" },
+      { word: "Stephen Curry", normal: "Shooter", charades: "Shimmy" },
+      { word: "Kevin Durant", normal: "Scorer", charades: "Lean" },
+      { word: "Shaquille O'Neal", normal: "Dominant", charades: "Massive" },
+      { word: "Kobe Bryant", normal: "Relentless", charades: "Relentless" },
+      { word: "Michael Jordan", normal: "Greatest", charades: "Soar" },
+      { word: "Charles Barkley", normal: "Outspoken", charades: "Round" },
+      { word: "Magic Johnson", normal: "Showtime", charades: "Grin" },
+      { word: "Dennis Rodman", normal: "Rebounder", charades: "Wild" },
+      { word: "Giannis", normal: "Athletic", charades: "Stride" },
+      { word: "James Harden", normal: "Stepback", charades: "Beard" },
+      { word: "Kawhi Leonard", normal: "Robotic", charades: "Robotic" },
+      { word: "Luka Dončić", normal: "Crafty", charades: "Fade" },
+      { word: "Derrick Rose", normal: "Explosive", charades: "Leap" },
+      { word: "Allen Iverson", normal: "Crossover", charades: "Low" },
+      { word: "Tim Duncan", normal: "Fundamental", charades: "Bank" },
+      { word: "Chris Paul", normal: "Cerebral", charades: "Pocket" },
+      { word: "Anthony Edwards", normal: "Confident", charades: "Flex" },
+      { word: "Trae Young", normal: "Floater", charades: "Slide" },
+      { word: "Ja Morant", normal: "Airborne", charades: "Windmill" },
+      { word: "Zion Williamson", normal: "Massive", charades: "Bulldoze" },
+      { word: "Gary Payton", normal: "Defensive", charades: "Jaw" },
+      { word: "Vince Carter", normal: "Acrobatic", charades: "Hang" },
+      { word: "Reggie Miller", normal: "Clutch", charades: "Lean" },
+      { word: "Patrick Ewing", normal: "Dominant", charades: "Post" },
+      { word: "Draymond Green", normal: "Vocal", charades: "Kick" },
+      { word: "Steph's Shimmy", normal: "Celebratory", charades: "Wiggle" },
+      { word: "Larry Bird", normal: "Sharpshooter", charades: "Trash" },
+      { word: "Scottie Pippen", normal: "Underrated", charades: "Glide" },
+      { word: "Paul Pierce", normal: "Dramatic", charades: "Wheelchair" },
+      { word: "Carmelo Anthony", normal: "Scoring", charades: "Iso" },
+      { word: "Dwight Howard", normal: "Powerful", charades: "Roar" },
+      { word: "John Stockton", normal: "Assists", charades: "Dish" },
+      { word: "Dirk Nowitzki", normal: "Fadeaway", charades: "Lean" },
+      { word: "Ray Allen", normal: "Shooter", charades: "Corner" },
+      { word: "Kevin Garnett", normal: "Intense", charades: "Scream" },
+      { word: "Dream Shake", normal: "Deceptive", charades: "Fake" },
+      { word: "Posterize", normal: "Humiliating", charades: "Crush" },
+      { word: "Half Court Shot", normal: "Desperate", charades: "Heave" },
+      { word: "Overtime", normal: "Extended", charades: "Extra" },
+      { word: "Blocked Shot", normal: "Rejected", charades: "Swat" },
+      { word: "No-Look Pass", normal: "Deceptive", charades: "Glance" },
+      { word: "Behind the Back Pass", normal: "Flashy", charades: "Spin" },
+      { word: "Eurostep", normal: "Crafty", charades: "Sidestep" },
+      { word: "Logo Shot", normal: "Outrageous", charades: "Deep" },
+      { word: "Playoff Beard", normal: "Superstitious", charades: "Grow" },
+      { word: "Jersey Retirement", normal: "Honored", charades: "Raise" },
+      { word: "Penny Hardaway", normal: "Smooth", charades: "Glide" },
+      { word: "Steve Nash", normal: "Playmaker", charades: "Thread" },
+      { word: "Karl Malone", normal: "Powerful", charades: "Post" },
+      { word: "Paul George", normal: "Versatile", charades: "Wing" },
+      { word: "Victor Wembanyama", normal: "Rare", charades: "Block" },
+      { word: "Charging Foul", normal: "Planted", charades: "Brace" },
+      { word: "Flagrant Two", normal: "Automatic", charades: "Eject" }
+    ]
+  },
+  Silly: {
+    label: "Silly / Random",
+    words: [
+      { word: "Wet Sock", normal: "Damp", charades: "Squish" },
+      { word: "Hiccups", normal: "Involuntary", charades: "Involuntary" },
+      { word: "Stepping on a Lego", normal: "Barefoot", charades: "Hobble" },
+      { word: "Brain Freeze", normal: "Temporary", charades: "Grab" },
+      { word: "Quicksand", normal: "Sinking", charades: "Flail" },
+      { word: "Tripping in Public", normal: "Stumble", charades: "Stumble" },
+      { word: "Talking in Your Sleep", normal: "Unconscious", charades: "Mumble" },
+      { word: "The Sneeze That Doesn't Come", normal: "Almost", charades: "Almost" },
+      { word: "Fart in an Elevator", normal: "Confined", charades: "Sniff" },
+      { word: "Eating Soup with a Fork", normal: "Utensil", charades: "Drip" },
+      { word: "Sunburn", normal: "Painful", charades: "Peel" },
+      { word: "Snooze Button", normal: "Tempting", charades: "Slap" },
+      { word: "Static Hair", normal: "Electric", charades: "Electric" },
+      { word: "Yawning in Class", normal: "Drowsy", charades: "Drowsy" },
+      { word: "Forgetting a Word Mid-Sentence", normal: "Blank", charades: "Blank" },
+      { word: "Mismatched Socks", normal: "Unnoticed", charades: "Shrug" },
+      { word: "Paper Cut", normal: "Tiny", charades: "Wince" },
+      { word: "Nosebleed", normal: "Sudden", charades: "Tilt" },
+      { word: "Sweaty Handshake", normal: "Nervous", charades: "Nervous" },
+      { word: "Laughing at the Wrong Time", normal: "Awkward", charades: "Burst" },
+      { word: "Falling Asleep in Class", normal: "Bored", charades: "Droop" },
+      { word: "Stubbing Your Toe", normal: "Furniture", charades: "Hop" },
+      { word: "Dropping Your Tray", normal: "Cafeteria", charades: "Crash" },
+      { word: "Autocorrect Fail", normal: "Digital", charades: "Retype" },
+      { word: "Waving at the Wrong Person", normal: "Awkward", charades: "Cringe" },
+      { word: "Spilling a Drink", normal: "Clumsy", charades: "Clumsy" },
+      { word: "Missing a High Five", normal: "Misjudged", charades: "Swing" },
+      { word: "Sitting in Gum", normal: "Sticky", charades: "Peel" },
+      { word: "Running in a Dream", normal: "Paralyzed", charades: "Shuffle" },
+      { word: "Biting Your Cheek", normal: "Painful", charades: "Wince" },
+      { word: "Forgetting Why You Walked In", normal: "Confused", charades: "Confused" },
+      { word: "Singing Wrong Lyrics", normal: "Confident", charades: "Belt" },
+      { word: "Awkward Silence", normal: "Sudden", charades: "Freeze" },
+      { word: "Phone Falling on Your Face", normal: "Gravity", charades: "Bonk" },
+      { word: "Wobbly Chair", normal: "Unstable", charades: "Rock" },
+      { word: "Losing an Earbud", normal: "Tangled", charades: "Search" },
+      { word: "Waiting for the Microwave", normal: "Impatient", charades: "Stare" },
+      { word: "Invisible Bug Feeling", normal: "Paranoid", charades: "Scratch" },
+      { word: "Walking into Glass", normal: "Invisible", charades: "Bonk" },
+      { word: "Saying the Wrong Name", normal: "Embarrassing", charades: "Freeze" },
+      { word: "Alarm That Didn't Go Off", normal: "Missed", charades: "Panic" },
+      { word: "Talking to Yourself", normal: "Habit", charades: "Mutter" },
+      { word: "Hyperventilating", normal: "Panicked", charades: "Gasp" },
+      { word: "Sneezing on Someone", normal: "Uncontrollable", charades: "Spray" },
+      { word: "Being Left on Read", normal: "Digital", charades: "Wait" },
+      { word: "Overflowing Backpack", normal: "Heavy", charades: "Drag" },
+      { word: "Wrong Bathroom", normal: "Embarrassing", charades: "Flee" },
+      { word: "Forgetting Your Lunch", normal: "Hungry", charades: "Empty" },
+      { word: "Shrinking in the Dryer", normal: "Ruined", charades: "Shrink" },
+      { word: "Sock Puppet", normal: "Homemade", charades: "Wiggle" },
+      { word: "Ice Down the Shirt", normal: "Shocking", charades: "Flail" },
+      { word: "Pretending to Be Busy", normal: "Avoidance", charades: "Scroll" },
+      { word: "Dramatic Fall", normal: "Theatrical", charades: "Theatrical" },
+      { word: "Crying at a Commercial", normal: "Unexpected", charades: "Wipe" },
+      { word: "Forgetting Someone's Name", normal: "Embarrassing", charades: "Blank" },
+      { word: "Stepping in a Puddle", normal: "Soaked", charades: "Stomp" },
+      { word: "Choking on Water", normal: "Embarrassing", charades: "Gasp" },
+      { word: "Pillow Fight", normal: "Spontaneous", charades: "Swing" },
+      { word: "Nose Whistle", normal: "Involuntary", charades: "Whistle" },
+      { word: "Trying to Whisper but Failing", normal: "Loud", charades: "Shush" },
+      { word: "Zip Tie", normal: "Tight", charades: "Snap" },
+      { word: "Getting Poked in the Eye", normal: "Accidental", charades: "Blink" },
+      { word: "Misread a Text", normal: "Awkward", charades: "Squint" },
+      { word: "Talking with Your Mouth Full", normal: "Rude", charades: "Mumble" },
+      { word: "Expired Coupon", normal: "Useless", charades: "Crumple" },
+      { word: "Tripping on Nothing", normal: "Clumsy", charades: "Stumble" }
+    ]
+  },
+  Animals: {
+    label: "Animals",
+    words: [
+      { word: "Shark", normal: "Predator", charades: "Predator" },
+      { word: "Elephant", normal: "Memory", charades: "Stomp" },
+      { word: "Penguin", normal: "Waddling", charades: "Waddling" },
+      { word: "Cheetah", normal: "Fast", charades: "Fast" },
+      { word: "Gorilla", normal: "Strong", charades: "Pound" },
+      { word: "Sloth", normal: "Slow", charades: "Slow" },
+      { word: "Octopus", normal: "Arms", charades: "Arms" },
+      { word: "Flamingo", normal: "Pink", charades: "Balance" },
+      { word: "Parrot", normal: "Talking", charades: "Mimic" },
+      { word: "Honey Badger", normal: "Fearless", charades: "Fearless" },
+      { word: "Crocodile", normal: "Snapping", charades: "Lunge" },
+      { word: "Platypus", normal: "Unusual", charades: "Waddle" },
+      { word: "Porcupine", normal: "Defensive", charades: "Defensive" },
+      { word: "Peacock", normal: "Showy", charades: "Spread" },
+      { word: "Hyena", normal: "Laughing", charades: "Laughing" },
+      { word: "Chameleon", normal: "Blending", charades: "Blending" },
+      { word: "Grizzly Bear", normal: "Hibernating", charades: "Swipe" },
+      { word: "Raccoon", normal: "Sneaky", charades: "Rummage" },
+      { word: "Kangaroo", normal: "Pouch", charades: "Hop" },
+      { word: "Cobra", normal: "Hooded", charades: "Sway" },
+      { word: "Piranha", normal: "Aggressive", charades: "Swarm" },
+      { word: "Bald Eagle", normal: "Proud", charades: "Swoop" },
+      { word: "Tarantula", normal: "Hairy", charades: "Creep" },
+      { word: "Narwhal", normal: "Horned", charades: "Poke" },
+      { word: "Dolphin", normal: "Intelligent", charades: "Leap" },
+      { word: "Wolverine", normal: "Aggressive", charades: "Slash" },
+      { word: "Moose", normal: "Antlered", charades: "Stomp" },
+      { word: "Panda", normal: "Lazy", charades: "Munch" },
+      { word: "Walrus", normal: "Tusked", charades: "Flop" },
+      { word: "Meerkat", normal: "Alert", charades: "Alert" },
+      { word: "Armadillo", normal: "Armored", charades: "Curl" },
+      { word: "Otter", normal: "Playful", charades: "Float" },
+      { word: "Pelican", normal: "Pouched", charades: "Scoop" },
+      { word: "Bison", normal: "Massive", charades: "Charge" },
+      { word: "Jaguar", normal: "Spotted", charades: "Pounce" },
+      { word: "Camel", normal: "Humped", charades: "Plod" },
+      { word: "Iguana", normal: "Scaly", charades: "Nod" },
+      { word: "Vulture", normal: "Patient", charades: "Circle" },
+      { word: "Capybara", normal: "Calm", charades: "Calm" },
+      { word: "Warthog", normal: "Ugly", charades: "Snort" },
+      { word: "Seahorse", normal: "Tiny", charades: "Drift" },
+      { word: "Baboon", normal: "Colorful", charades: "Strut" },
+      { word: "Coyote", normal: "Howling", charades: "Howling" },
+      { word: "Rattlesnake", normal: "Warning", charades: "Rattle" },
+      { word: "Firefly", normal: "Glowing", charades: "Blink" },
+      { word: "Komodo Dragon", normal: "Venomous", charades: "Tongue" },
+      { word: "Manta Ray", normal: "Gliding", charades: "Gliding" },
+      { word: "Shoebill", normal: "Intimidating", charades: "Glare" },
+      { word: "Hummingbird", normal: "Hovering", charades: "Hovering" },
+      { word: "Cassowary", normal: "Dangerous", charades: "Kick" },
+      { word: "Pangolin", normal: "Armored", charades: "Roll" },
+      { word: "Flying Squirrel", normal: "Gliding", charades: "Spread" },
+      { word: "Opossum", normal: "Pretending", charades: "Play Dead" },
+      { word: "Frigate Bird", normal: "Inflated", charades: "Puff" },
+      { word: "Hagfish", normal: "Slimy", charades: "Ooze" },
+      { word: "Mantis Shrimp", normal: "Powerful", charades: "Strike" },
+      { word: "Axolotl", normal: "Aquatic", charades: "Gills" },
+      { word: "Quokka", normal: "Smiling", charades: "Smiling" },
+      { word: "Tarsier", normal: "Eyes", charades: "Stare" },
+      { word: "Manatee", normal: "Gentle", charades: "Float" },
+      { word: "Sun Bear", normal: "Small", charades: "Climb" },
+      { word: "Jumping Spider", normal: "Leaping", charades: "Leaping" },
+      { word: "Mudskipper", normal: "Walking", charades: "Flop" },
+      { word: "Liger", normal: "Hybrid", charades: "Roar" },
+      { word: "Mandrill", normal: "Colorful", charades: "Strut" },
+      { word: "Tapir", normal: "Snout", charades: "Sniff" },
+      { word: "Fossa", normal: "Agile", charades: "Pounce" },
+      { word: "Binturong", normal: "Stinky", charades: "Stinky" },
+      { word: "Pistol Shrimp", normal: "Sonic", charades: "Snap" },
+      { word: "Tardigrade", normal: "Indestructible", charades: "Tiny" }
+    ]
+  },
+  Food: {
+    label: "Food",
+    words: [
+      { word: "Durian", normal: "Pungent", charades: "Recoil" },
+      { word: "Flamin Hot Cheetos", normal: "Stained", charades: "Stained" },
+      { word: "Dippin Dots", normal: "Futuristic", charades: "Scoop" },
+      { word: "Boba Tea", normal: "Chewy", charades: "Slurp" },
+      { word: "Candy Corn", normal: "Divisive", charades: "Divisive" },
+      { word: "Soggy Sandwich", normal: "Disappointing", charades: "Deflate" },
+      { word: "Gas Station Sushi", normal: "Risky", charades: "Risky" },
+      { word: "Pizza Rolls", normal: "Burning", charades: "Juggle" },
+      { word: "Lunchables", normal: "Portable", charades: "Stack" },
+      { word: "Gushers", normal: "Explosive", charades: "Explosive" },
+      { word: "String Cheese", normal: "Peelable", charades: "Peelable" },
+      { word: "Fruit by the Foot", normal: "Long", charades: "Unroll" },
+      { word: "Pop Rocks", normal: "Fizzy", charades: "Fizzy" },
+      { word: "Oreo", normal: "Twistable", charades: "Dunk" },
+      { word: "Ramen Noodles", normal: "Slurpy", charades: "Slurpy" },
+      { word: "Churro", normal: "Cinnamon", charades: "Roll" },
+      { word: "Nachos", normal: "Loaded", charades: "Dip" },
+      { word: "Chicken Nuggets", normal: "Crispy", charades: "Dunk" },
+      { word: "Waffle Fries", normal: "Textured", charades: "Crunch" },
+      { word: "Sour Patch Kids", normal: "Tart", charades: "Pucker" },
+      { word: "Swedish Fish", normal: "Gummy", charades: "Gummy" },
+      { word: "Pork Rinds", normal: "Crunchy", charades: "Snap" },
+      { word: "Funnel Cake", normal: "Powdery", charades: "Dust" },
+      { word: "Cotton Candy", normal: "Dissolving", charades: "Dissolving" },
+      { word: "Jawbreaker", normal: "Hard", charades: "Strain" },
+      { word: "Pretzel", normal: "Salty", charades: "Twist" },
+      { word: "Spam", normal: "Canned", charades: "Slice" },
+      { word: "Kimchi", normal: "Fermented", charades: "Wince" },
+      { word: "Mochi", normal: "Chewy", charades: "Squish" },
+      { word: "Fried Oreo", normal: "Indulgent", charades: "Bite" },
+      { word: "Elote", normal: "Messy", charades: "Slather" },
+      { word: "Deviled Eggs", normal: "Potluck", charades: "Scoop" },
+      { word: "Corn Dog", normal: "Handheld", charades: "Chomp" },
+      { word: "Fried Pickles", normal: "Tangy", charades: "Crunch" },
+      { word: "Edamame", normal: "Popped", charades: "Squeeze" },
+      { word: "Taffy", normal: "Stretchy", charades: "Stretchy" },
+      { word: "Peeps", normal: "Stale", charades: "Poke" },
+      { word: "Goldfish Crackers", normal: "Snacking", charades: "Pour" },
+      { word: "Lollipop", normal: "Swirled", charades: "Lick" },
+      { word: "Soft Pretzel", normal: "Doughy", charades: "Dip" },
+      { word: "Nutter Butter", normal: "Sandwich", charades: "Twist" },
+      { word: "Lucky Charms", normal: "Marshmallow", charades: "Pour" },
+      { word: "Hash Browns", normal: "Crispy", charades: "Flip" },
+      { word: "Funfetti", normal: "Festive", charades: "Sprinkle" },
+      { word: "Natto", normal: "Fermented", charades: "Stretch" },
+      { word: "Cheese Puffs", normal: "Dusty", charades: "Dusty" },
+      { word: "Moon Pie", normal: "Nostalgic", charades: "Smoosh" },
+      { word: "Slim Jim", normal: "Processed", charades: "Snap" },
+      { word: "Fruit Roll-Up", normal: "Flat", charades: "Unroll" },
+      { word: "Ring Pop", normal: "Wearable", charades: "Lick" },
+      { word: "Dunkaroos", normal: "Dipping", charades: "Dipping" },
+      { word: "Astronaut Ice Cream", normal: "Powdery", charades: "Crumble" },
+      { word: "Toaster Strudel", normal: "Flaky", charades: "Drizzle" },
+      { word: "Bagel Bites", normal: "Miniature", charades: "Miniature" },
+      { word: "Hot Pocket", normal: "Burning", charades: "Juggle" },
+      { word: "Uncrustable", normal: "Sealed", charades: "Squish" },
+      { word: "Takis", normal: "Intense", charades: "Intense" },
+      { word: "Warheads", normal: "Extreme", charades: "Pucker" },
+      { word: "Crunch Bar", normal: "Crispy", charades: "Snap" },
+      { word: "Nerds", normal: "Tiny", charades: "Shake" },
+      { word: "Airheads", normal: "Stretchy", charades: "Pull" },
+      { word: "Pixy Stix", normal: "Powdery", charades: "Pour" },
+      { word: "Push Pop", normal: "Rising", charades: "Push" },
+      { word: "Now and Later", normal: "Hard", charades: "Chew" },
+      { word: "Grape Soda", normal: "Artificial", charades: "Fizz" }
+    ]
+  },
+  Objects: {
+    label: "Objects",
+    words: [
+      { word: "Broken Umbrella", normal: "Useless", charades: "Flip" },
+      { word: "Pool Noodle", normal: "Buoyant", charades: "Whack" },
+      { word: "Bubble Wrap", normal: "Satisfying", charades: "Satisfying" },
+      { word: "Glitter", normal: "Permanent", charades: "Permanent" },
+      { word: "Duct Tape", normal: "Universal", charades: "Wrap" },
+      { word: "Elevator Music", normal: "Bland", charades: "Sway" },
+      { word: "Dead Phone", normal: "Powerless", charades: "Panic" },
+      { word: "Vending Machine", normal: "Frustrating", charades: "Kick" },
+      { word: "Lost Remote", normal: "Misplaced", charades: "Search" },
+      { word: "Spinning Chair", normal: "Wheeled", charades: "Spin" },
+      { word: "Whoopee Cushion", normal: "Prank", charades: "Sit" },
+      { word: "Sticky Note", normal: "Reminder", charades: "Stick" },
+      { word: "Magic 8 Ball", normal: "Indecisive", charades: "Shake" },
+      { word: "Snow Globe", normal: "Decorative", charades: "Swirl" },
+      { word: "Fidget Spinner", normal: "Distracting", charades: "Flick" },
+      { word: "Rubber Band", normal: "Stretchy", charades: "Snap" },
+      { word: "Piggy Bank", normal: "Savings", charades: "Shake" },
+      { word: "Alarm Clock", normal: "Jarring", charades: "Slap" },
+      { word: "Flip Flop", normal: "Summer", charades: "Slap" },
+      { word: "Pinwheel", normal: "Breezy", charades: "Blow" },
+      { word: "Yo-Yo", normal: "Returning", charades: "Returning" },
+      { word: "Lava Lamp", normal: "Hypnotic", charades: "Float" },
+      { word: "Stress Ball", normal: "Squeezable", charades: "Squeezable" },
+      { word: "Flyswatter", normal: "Slapping", charades: "Swat" },
+      { word: "Slinky", normal: "Cascading", charades: "Drape" },
+      { word: "Binder Clip", normal: "Clamping", charades: "Pinch" },
+      { word: "Cheese Grater", normal: "Sharp", charades: "Shred" },
+      { word: "Whisk", normal: "Mixing", charades: "Mixing" },
+      { word: "Spatula", normal: "Flipping", charades: "Flipping" },
+      { word: "Ice Tray", normal: "Divided", charades: "Pop" },
+      { word: "Squeegee", normal: "Wiping", charades: "Drag" },
+      { word: "Stapler", normal: "Binding", charades: "Clamp" },
+      { word: "Pencil Sharpener", normal: "Grinding", charades: "Crank" },
+      { word: "Protractor", normal: "Measuring", charades: "Arc" },
+      { word: "Globe", normal: "Rotating", charades: "Rotating" },
+      { word: "Eraser", normal: "Correcting", charades: "Rub" },
+      { word: "Padlock", normal: "Securing", charades: "Click" },
+      { word: "Lint Roller", normal: "Sticky", charades: "Dab" },
+      { word: "Rolling Pin", normal: "Flattening", charades: "Flattening" },
+      { word: "Oven Mitt", normal: "Protective", charades: "Grab" },
+      { word: "Strainer", normal: "Draining", charades: "Shake" },
+      { word: "Plunger", normal: "Unclogging", charades: "Plunge" },
+      { word: "Corkscrew", normal: "Twisting", charades: "Twisting" },
+      { word: "Doorstop", normal: "Wedged", charades: "Prop" },
+      { word: "Tape Measure", normal: "Retracting", charades: "Snap" },
+      { word: "Loofah", normal: "Scrubby", charades: "Scrub" },
+      { word: "Compass", normal: "Directional", charades: "Spin" },
+      { word: "Staple Gun", normal: "Loud", charades: "Click" },
+      { word: "Thumbtack", normal: "Sharp", charades: "Poke" },
+      { word: "Watering Can", normal: "Gardening", charades: "Pour" },
+      { word: "Magnifying Glass", normal: "Enlarging", charades: "Squint" },
+      { word: "Kaleidoscope", normal: "Colorful", charades: "Twist" },
+      { word: "Metronome", normal: "Rhythmic", charades: "Swing" },
+      { word: "Bubble Wand", normal: "Blowing", charades: "Blowing" },
+      { word: "Rubber Duck", normal: "Floating", charades: "Squeak" },
+      { word: "Sponge", normal: "Absorbing", charades: "Absorbing" },
+      { word: "Egg Timer", normal: "Ticking", charades: "Tick" },
+      { word: "Coin Jar", normal: "Savings", charades: "Shake" },
+      { word: "Paper Clip", normal: "Binding", charades: "Clip" },
+      { word: "Push Pin", normal: "Pinning", charades: "Poke" },
+      { word: "Mousetrap", normal: "Snapping", charades: "Snap" },
+      { word: "Bungee Cord", normal: "Elastic", charades: "Stretch" },
+      { word: "Carabiner", normal: "Clipping", charades: "Clip" },
+      { word: "Wristband", normal: "Wearable", charades: "Snap" }
+    ]
+  },
+  School: {
+    label: "School",
+    words: [
+      { word: "Pop Quiz", normal: "Surprise", charades: "Panic" },
+      { word: "Dissection Day", normal: "Biology", charades: "Grimace" },
+      { word: "Hall Pass", normal: "Permission", charades: "Strut" },
+      { word: "Group Project Slacker", normal: "Freeload", charades: "Slouch" },
+      { word: "Broken Projector", normal: "Delayed", charades: "Tap" },
+      { word: "Locker Combo", normal: "Forgotten", charades: "Fumble" },
+      { word: "Slow Clock", normal: "Endless", charades: "Stare" },
+      { word: "Called On Unexpectedly", normal: "Unprepared", charades: "Unprepared" },
+      { word: "Detention", normal: "Punishment", charades: "Slump" },
+      { word: "Fire Drill", normal: "Disruption", charades: "March" },
+      { word: "Substitute Teacher", normal: "Relaxed", charades: "Relaxed" },
+      { word: "Extra Credit", normal: "Bonus", charades: "Scramble" },
+      { word: "Tardy Slip", normal: "Late", charades: "Tiptoe" },
+      { word: "Cafeteria Food", normal: "Questionable", charades: "Poke" },
+      { word: "Science Fair", normal: "Competitive", charades: "Display" },
+      { word: "Dress Code", normal: "Restricted", charades: "Tug" },
+      { word: "Spirit Week", normal: "Spirited", charades: "Pose" },
+      { word: "Field Trip", normal: "Exciting", charades: "Wander" },
+      { word: "Yearbook Photo", normal: "Awkward", charades: "Smile" },
+      { word: "Teacher's Pet", normal: "Eager", charades: "Wave" },
+      { word: "Report Card", normal: "Dreaded", charades: "Tremble" },
+      { word: "Passing Period", normal: "Rushed", charades: "Weave" },
+      { word: "Study Hall", normal: "Quiet", charades: "Shush" },
+      { word: "Final Exam", normal: "Stressful", charades: "Sweat" },
+      { word: "Homecoming", normal: "Festive", charades: "Shuffle" },
+      { word: "Dodgeball", normal: "Chaotic", charades: "Duck" },
+      { word: "Lunch Line", normal: "Slow", charades: "Drag" },
+      { word: "Bathroom Break", normal: "Urgent", charades: "Rush" },
+      { word: "Book Report", normal: "Lengthy", charades: "Flip" },
+      { word: "Spelling Bee", normal: "Tense", charades: "Spell" },
+      { word: "Snow Day", normal: "Glorious", charades: "Leap" },
+      { word: "Class Clown", normal: "Disruptive", charades: "Perform" },
+      { word: "Attendance", normal: "Routine", charades: "Raise" },
+      { word: "Pencil Tap", normal: "Annoying", charades: "Drum" },
+      { word: "Nap During Class", normal: "Risky", charades: "Droop" },
+      { word: "Chalkboard Screech", normal: "Painful", charades: "Painful" },
+      { word: "Gym Rope", normal: "Dreaded", charades: "Climb" },
+      { word: "Eraser Shavings", normal: "Messy", charades: "Blow" },
+      { word: "Cafeteria Milk", normal: "Lukewarm", charades: "Sniff" },
+      { word: "Absent Student", normal: "Missing", charades: "Shrug" },
+      { word: "Broken Pencil", normal: "Useless", charades: "Snap" },
+      { word: "Word Problem", normal: "Confusing", charades: "Scratch" },
+      { word: "Late Bus", normal: "Stranded", charades: "Tap" },
+      { word: "Morning Announcements", normal: "Droning", charades: "Slump" },
+      { word: "Pencil Hoarder", normal: "Supplies", charades: "Hoard" },
+      { word: "Guidance Counselor", normal: "Concerned", charades: "Lean" },
+      { word: "School Mascot", normal: "Spirited", charades: "Prance" },
+      { word: "Bully", normal: "Intimidating", charades: "Puff" },
+      { word: "Homework", normal: "Dreadful", charades: "Slump" },
+      { word: "Backpack", normal: "Heavy", charades: "Hunch" },
+      { word: "Cheat Sheet", normal: "Hidden", charades: "Peek" },
+      { word: "Passing Notes", normal: "Secretive", charades: "Slide" },
+      { word: "Gym Class", normal: "Sweaty", charades: "Sweaty" },
+      { word: "Math Test", normal: "Dreadful", charades: "Sweat" },
+      { word: "Class Pet", normal: "Beloved", charades: "Pet" },
+      { word: "Graduation", normal: "Ceremonial", charades: "Walk" },
+      { word: "Principal's Office", normal: "Dreaded", charades: "Trudge" },
+      { word: "Paper Airplane", normal: "Aerodynamic", charades: "Throw" },
+      { word: "Tug of War", normal: "Competitive", charades: "Pull" },
+      { word: "Library Silence", normal: "Enforced", charades: "Shush" },
+      { word: "Student Council", normal: "Political", charades: "Campaign" },
+      { word: "Pep Rally", normal: "Loud", charades: "Cheer" },
+      { word: "Water Fountain", normal: "Lukewarm", charades: "Slurp" },
+      { word: "Cafeteria Fight", normal: "Chaotic", charades: "Dodge" },
+      { word: "Wet Paint Sign", normal: "Ignored", charades: "Touch" },
+      { word: "Pencil Case", normal: "Organized", charades: "Unzip" }
+    ]
+  }
+};
+
+// ════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════
+let state = {
+  playerCount: 4,
+  imposterCount: 1,
+  hintMode: 'category',
+  selectedCats: new Set(['NBA','Silly','Animals','Food','Objects','School']),
+  playerNames: [],
+  // game
+  players: [],       // [{name, isImposter}]
+  currentPlayerIdx: 0,
+  secretWord: null,
+  secretCategory: null,
+  assignments: []    // [{name, isImposter}] — built at game start
+};
+
+// Init slider fill on load
+document.addEventListener('DOMContentLoaded', () => { updatePlayerCount(); });
+
+// ════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('coverScreen').classList.remove('active');
+  document.getElementById('allDoneScreen').classList.remove('active');
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ════════════════════════════════════════════════
+//  SETUP INTERACTIONS
+// ════════════════════════════════════════════════
+function updateSliderTrack(slider, color) {
+  const min = +slider.min, max = +slider.max, val = +slider.value;
+  const pct = max === min ? 0 : ((val - min) / (max - min)) * 100;
+  slider.style.background =
+    `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
+}
+
+function updatePlayerCount() {
+  const v = +document.getElementById('playerSlider').value;
+  state.playerCount = v;
+  document.getElementById('playerCountVal').textContent = v;
+  updateSliderTrack(document.getElementById('playerSlider'), 'var(--accent2)');
+  // Recompute imposter max: floor((players-1)/2) so crewmates always outnumber
+  const maxImp = Math.max(1, Math.floor((v - 1) / 2));
+  const impSlider = document.getElementById('imposterSlider');
+  impSlider.max = maxImp;
+  if (+impSlider.value > maxImp) impSlider.value = maxImp;
+  state.imposterCount = +impSlider.value;
+  document.getElementById('imposterCountVal').textContent = impSlider.value;
+  updateSliderTrack(impSlider, 'var(--accent)');
+}
+
+function updateImposterCount() {
+  const v = +document.getElementById('imposterSlider').value;
+  state.imposterCount = v;
+  document.getElementById('imposterCountVal').textContent = v;
+  updateSliderTrack(document.getElementById('imposterSlider'), 'var(--accent)');
+}
+
+function selectMode(btn) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.hintMode = btn.dataset.mode;
+}
+
+function toggleCat(btn) {
+  const cat = btn.dataset.cat;
+  if (state.selectedCats.has(cat)) {
+    if (state.selectedCats.size === 1) return; // must keep at least one
+    state.selectedCats.delete(cat);
+    btn.classList.remove('selected');
+  } else {
+    state.selectedCats.add(cat);
+    btn.classList.add('selected');
+  }
+}
+
+// ════════════════════════════════════════════════
+//  NAMES SCREEN
+// ════════════════════════════════════════════════
+function goToNames() {
+  state.playerCount = +document.getElementById('playerSlider').value;
+  state.imposterCount = +document.getElementById('imposterSlider').value;
+  buildNameInputs();
+  goTo('namesScreen');
+}
+
+function buildNameInputs() {
+  const list = document.getElementById('playerNameList');
+  list.innerHTML = '';
+  for (let i = 0; i < state.playerCount; i++) {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <span class="player-num">${i+1}</span>
+      <input type="text" placeholder="Player ${i+1}" value="${state.playerNames[i] || ''}" 
+             oninput="state.playerNames[${i}] = this.value" maxlength="20">
+    `;
+    list.appendChild(row);
+  }
+}
+
+// ════════════════════════════════════════════════
+//  START GAME
+// ════════════════════════════════════════════════
+function startGame() {
+  // Fill in blank names
+  state.playerNames = [];
+  for (let i = 0; i < state.playerCount; i++) {
+    const inp = document.querySelectorAll('#playerNameList input')[i];
+    state.playerNames[i] = inp.value.trim() || `Player ${i+1}`;
+  }
+
+  // Pick word from enabled categories
+  const catKeys = [...state.selectedCats];
+  const catKey = catKeys[Math.floor(Math.random() * catKeys.length)];
+  const catData = WORDS[catKey];
+  const entry = catData.words[Math.floor(Math.random() * catData.words.length)];
+  state.secretWord = entry;
+  state.secretCategory = catData.label;
+
+  // Assign imposters randomly
+  const indices = shuffle([...Array(state.playerCount).keys()]);
+  const imposterIndices = new Set(indices.slice(0, state.imposterCount));
+
+  state.assignments = state.playerNames.map((name, i) => ({
+    name,
+    isImposter: imposterIndices.has(i)
+  }));
+
+  state.currentPlayerIdx = 0;
+  showPassScreen();
+}
+
+// ════════════════════════════════════════════════
+//  PASS SCREEN
+// ════════════════════════════════════════════════
+function showPassScreen() {
+  const player = state.assignments[state.currentPlayerIdx];
+  const name = player.name;
+  const initial = name[0].toUpperCase();
+
+  document.getElementById('passAvatar').textContent = initial;
+  document.getElementById('passName').textContent = name.toUpperCase();
+  document.getElementById('passNameRepeat').textContent = name;
+
+  // Progress
+  const pct = (state.currentPlayerIdx / state.playerCount) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  goTo('passScreen');
+}
+
+// ════════════════════════════════════════════════
+//  REVEAL SCREEN
+// ════════════════════════════════════════════════
+function showReveal() {
+  const player = state.assignments[state.currentPlayerIdx];
+  const isImposter = player.isImposter;
+  const mode = state.hintMode;
+  const entry = state.secretWord;
+
+  const roleEl = document.getElementById('revealRole');
+  const wordEl = document.getElementById('revealWord');
+  const wordLabelEl = document.getElementById('revealWordLabel');
+  const hintLabel = document.getElementById('revealHintLabel');
+  const hintEl = document.getElementById('revealHint');
+  const instrEl = document.getElementById('revealInstruction');
+  const charadesBanner = document.getElementById('revealCharadesBanner');
+
+  charadesBanner.style.display = 'none';
+  hintLabel.style.display = 'none';
+  hintEl.style.display = 'none';
+
+  if (isImposter) {
+    roleEl.textContent = 'IMPOSTER';
+    roleEl.className = 'reveal-role imposter glitch';
+    setTimeout(() => roleEl.classList.remove('glitch'), 500);
+    wordLabelEl.textContent = 'Your Hint';
+    wordEl.className = 'reveal-word imposter-word';
+
+    if (mode === 'category') {
+      wordEl.textContent = state.secretCategory.toUpperCase();
+      instrEl.textContent = "You only know the category. Blend in — give a convincing clue without revealing you don't know the word.";
+    } else if (mode === 'normal') {
+      wordEl.textContent = state.secretCategory.toUpperCase();
+      hintLabel.style.display = 'block';
+      hintEl.style.display = 'block';
+      hintEl.textContent = entry.normal.toUpperCase();
+      instrEl.textContent = "You have a one-word hint. Use it wisely — don't be too obvious or too suspicious.";
+    } else if (mode === 'charades') {
+      wordEl.textContent = state.secretCategory.toUpperCase();
+      hintLabel.style.display = 'block';
+      hintEl.style.display = 'block';
+      hintEl.textContent = entry.charades.toUpperCase();
+      charadesBanner.style.display = 'block';
+      instrEl.textContent = "No words! Act it out or make sounds only. Your hint guides what to mime.";
+    }
+  } else {
+    roleEl.textContent = 'CREWMATE';
+    roleEl.className = 'reveal-role crewmate';
+    wordLabelEl.textContent = 'The Word';
+    wordEl.className = 'reveal-word crewmate-word';
+    wordEl.textContent = entry.word.toUpperCase();
+
+    if (mode === 'charades') {
+      charadesBanner.style.display = 'block';
+      instrEl.textContent = "No words allowed! Act it out or make noises only. Help others guess without saying a thing.";
+    } else {
+      instrEl.textContent = "Give one clue per round. Help the group spot the Imposter — but don't make it too obvious!";
+    }
+  }
+
+  goTo('revealScreen');
+}
+
+// ════════════════════════════════════════════════
+//  COVER → NEXT PLAYER
+// ════════════════════════════════════════════════
+function hideToCover() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('allDoneScreen').classList.remove('active');
+  document.getElementById('coverScreen').classList.add('active');
+}
+
+function nextPlayer() {
+  document.getElementById('coverScreen').classList.remove('active');
+  state.currentPlayerIdx++;
+  if (state.currentPlayerIdx >= state.playerCount) {
+    showAllDoneGate();
+  } else {
+    showPassScreen();
+  }
+}
+
+function showAllDoneGate() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('coverScreen').classList.remove('active');
+  // Pick a random starting player and display their name
+  const randomIdx = Math.floor(Math.random() * state.assignments.length);
+  document.getElementById('startingPlayerName').textContent =
+    state.assignments[randomIdx].name.toUpperCase();
+  document.getElementById('allDoneScreen').classList.add('active');
+}
+
+// ════════════════════════════════════════════════
+//  SUMMARY
+// ════════════════════════════════════════════════
+function showSummary() {
+  document.getElementById('allDoneScreen').classList.remove('active');
+  document.getElementById('summaryWord').textContent = state.secretWord.word.toUpperCase();
+  document.getElementById('summaryCategory').textContent = state.secretCategory;
+
+  const list = document.getElementById('playerSummaryList');
+  list.innerHTML = '';
+  state.assignments.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'player-summary-row';
+    row.innerHTML = `
+      <span class="player-summary-name">${p.name}</span>
+      <span class="player-summary-role ${p.isImposter ? 'role-imposter' : 'role-crewmate'}">
+        ${p.isImposter ? '🔪 Imposter' : '✅ Crewmate'}
+      </span>
+    `;
+    list.appendChild(row);
+  });
+
+  goTo('summaryScreen');
+}
+
+function playAgainSameSettings() {
+  startGame();
+}
+
+// ════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+</script>
+</body>
+</html>
