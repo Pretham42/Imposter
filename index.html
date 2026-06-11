@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>IMPOSTER</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a40;
+    --accent: #ff3c5f;
+    --accent2: #ffcc00;
+    --accent3: #00e5ff;
+    --text: #f0f0f8;
+    --muted: #6a6a8a;
+    --success: #00e5a0;
+    --radius: 12px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.5;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100svh;
+    padding: 20px 18px calc(20px + var(--safe-bottom));
+    padding-top: calc(20px + var(--safe-top));
+  }
+  .screen.active { display: flex; }
+  .screen-scroll {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100svh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 18px calc(32px + var(--safe-bottom));
+    padding-top: calc(16px + var(--safe-top));
+  }
+  .screen-scroll.active { display: flex; }
+
+  /* ─── LOGO ─── */
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(64px, 18vw, 120px);
+    letter-spacing: 8px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 40px rgba(255,60,95,0.4));
+    text-align: center;
+  }
+  .tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    width: 100%;
+    max-width: 480px;
+  }
+  .card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 28px;
+    border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.12s ease;
+    width: 100%;
+    min-height: 54px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:active { background: #e02a50; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:active { border-color: var(--accent); color: var(--accent); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); font-size: 11px; min-height: 48px; }
+  .btn-ghost:active { color: var(--text); border-color: var(--muted); }
+  .btn-yellow { background: var(--accent2); color: #0a0a0f; }
+  .btn-yellow:active { background: #e6b800; }
+  .btn-green { background: var(--success); color: #0a0a0f; }
+  .btn-green:active { background: #00cc8e; }
+
+  /* ─── INPUTS ─── */
+  input[type="text"], input[type="number"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    padding: 14px 16px;
+    -webkit-appearance: none;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  /* ─── SLIDERS ─── */
+  .slider-row { display: flex; align-items: center; gap: 16px; }
+  .slider-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    line-height: 1;
+    min-width: 44px;
+    text-align: center;
+    flex-shrink: 0;
+    letter-spacing: 1px;
+  }
+  .slider-val.yellow { color: var(--accent2); filter: drop-shadow(0 0 8px rgba(255,204,0,0.4)); }
+  .slider-val.red    { color: var(--accent);  filter: drop-shadow(0 0 8px rgba(255,60,95,0.4)); }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 6px;
+    border-radius: 99px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]:active { opacity: 0.9; }
+  #playerSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--accent2);
+    cursor: pointer;
+    box-shadow: 0 0 0 5px rgba(255,204,0,0.18), 0 2px 8px rgba(0,0,0,0.4);
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  #playerSlider:active::-webkit-slider-thumb { transform: scale(1.2); box-shadow: 0 0 0 8px rgba(255,204,0,0.22), 0 2px 8px rgba(0,0,0,0.4); }
+  #imposterSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 0 5px rgba(255,60,95,0.18), 0 2px 8px rgba(0,0,0,0.4);
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  #imposterSlider:active::-webkit-slider-thumb { transform: scale(1.2); box-shadow: 0 0 0 8px rgba(255,60,95,0.22), 0 2px 8px rgba(0,0,0,0.4); }
+
+  /* ─── CATEGORY GRID ─── */
+  .cat-btn {
+    padding: 14px 6px;
+    min-height: 64px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.12s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .cat-btn .cat-icon { font-size: 20px; }
+  .cat-btn:active { transform: scale(0.94); }
+  .cat-btn.selected { border-color: var(--accent2); color: var(--accent2); background: rgba(255,204,0,0.09); }
+
+  /* ─── HINT MODE ─── */
+  .mode-grid { display: flex; flex-direction: column; gap: 9px; }
+  .mode-btn {
+    padding: 15px 16px;
+    min-height: 64px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.12s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .mode-btn .mode-icon { font-size: 20px; flex-shrink: 0; }
+  .mode-btn .mode-desc { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+  .mode-btn:active { transform: scale(0.98); }
+  .mode-btn.selected { border-color: var(--accent3); color: var(--accent3); background: rgba(0,229,255,0.06); }
+  .mode-btn.selected .mode-desc { color: rgba(0,229,255,0.55); }
+
+  /* ─── PLAYER NAMES ─── */
+  .player-list { display: flex; flex-direction: column; gap: 10px; }
+  .player-row { display: flex; align-items: center; gap: 10px; }
+  .player-num { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--accent); min-width: 28px; text-align: right; }
+
+  /* ─── PLAYER PICKER SCREEN ─── */
+  #pickerScreen {
+    justify-content: flex-start;
+    gap: 20px;
+    padding-top: calc(32px + var(--safe-top));
+  }
+  .picker-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(36px, 10vw, 52px);
+    letter-spacing: 3px;
+    line-height: 1;
+    text-align: center;
+  }
+  .picker-sub {
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.6;
+    max-width: 300px;
+  }
+  .picker-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 480px;
+  }
+  .picker-btn {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.12s;
+    user-select: none;
+    -webkit-user-select: none;
+    min-height: 90px;
+    justify-content: center;
+  }
+  .picker-btn:active { transform: scale(0.95); border-color: var(--accent2); background: rgba(255,204,0,0.08); }
+  .picker-btn.seen {
+    border-color: var(--success);
+    background: rgba(0,229,160,0.08);
+    opacity: 0.55;
+  }
+  .picker-btn .picker-initial {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--accent2);
+  }
+  .picker-btn.seen .picker-initial { color: var(--success); }
+  .picker-btn .picker-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+    text-align: center;
+    word-break: break-word;
+  }
+  .picker-btn .picker-check {
+    font-size: 16px;
+    display: none;
+  }
+  .picker-btn.seen .picker-check { display: block; }
+  .picker-btn.seen .picker-initial { display: none; }
+
+  .picker-progress {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .picker-progress span { color: var(--accent2); }
+
+  /* ─── REVEAL SCREEN ─── */
+  #revealScreen { justify-content: center; text-align: center; gap: 18px; }
+  .reveal-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); }
+  .reveal-role {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(58px, 17vw, 90px);
+    line-height: 1;
+    letter-spacing: 4px;
+  }
+  .reveal-role.crewmate { color: var(--success); filter: drop-shadow(0 0 30px rgba(0,229,160,0.4)); }
+  .reveal-role.imposter { color: var(--accent); filter: drop-shadow(0 0 32px rgba(255,60,95,0.55)); }
+  .reveal-word-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; width: 100%; max-width: 380px; }
+  .reveal-word {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(28px, 8vw, 40px);
+    letter-spacing: 3px;
+    line-height: 1.15;
+  }
+  .reveal-word.crewmate-word { color: var(--text); }
+  .reveal-word.imposter-word { color: var(--accent2); }
+  .reveal-hint-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-top: 14px; margin-bottom: 4px; }
+  .reveal-hint { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 2px; color: var(--accent3); }
+  .reveal-instruction { font-size: 13px; color: var(--muted); line-height: 1.65; max-width: 320px; }
+  .charades-banner {
+    background: linear-gradient(135deg, rgba(255,60,95,0.1), rgba(255,204,0,0.07));
+    border: 1px solid rgba(255,60,95,0.28);
+    border-radius: 12px;
+    padding: 13px 18px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    text-align: center;
+    max-width: 380px;
+  }
+  .charades-banner strong { color: var(--accent2); }
+
+  /* ─── ALL DONE GATE ─── */
+  #allDoneScreen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    text-align: center;
+    padding: 28px 24px calc(28px + var(--safe-bottom));
+    padding-top: calc(28px + var(--safe-top));
+  }
+  #allDoneScreen.active { display: flex; }
+
+  /* ─── SUMMARY ─── */
+  #summaryScreen { justify-content: flex-start; text-align: center; gap: 18px; padding-top: max(40px, calc(20px + var(--safe-top))); }
+  .summary-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(44px, 13vw, 60px); letter-spacing: 4px; line-height: 1; }
+  .player-summary-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 480px; }
+  .player-summary-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 13px 16px; gap: 10px; }
+  .player-summary-name { font-weight: 600; font-size: 15px; text-align: left; }
+  .player-summary-role { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px; padding: 5px 10px; border-radius: 99px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
+  .role-imposter { background: rgba(255,60,95,0.15); color: var(--accent); border: 1px solid rgba(255,60,95,0.3); }
+  .role-crewmate { background: rgba(0,229,160,0.1); color: var(--success); border: 1px solid rgba(0,229,160,0.2); }
+  .word-reveal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 480px; }
+  .word-reveal-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .word-reveal-word { font-family: 'Bebas Neue', sans-serif; font-size: 44px; letter-spacing: 3px; color: var(--accent2); }
+
+  /* ─── LAYOUT HELPERS ─── */
+  .stack { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 480px; }
+  .back-btn {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0;
+    text-transform: uppercase;
+    min-height: 44px;
+  }
+  .back-btn:active { color: var(--text); }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-3px, 1px); }
+    40% { transform: translate(3px, -1px); }
+    60% { transform: translate(-2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+  }
+  .fadeUp { animation: fadeUp 0.35s ease both; }
+  .glitch { animation: glitch 0.3s steps(1) 3; }
+
+  ::-webkit-scrollbar { width: 0; background: transparent; }
+</style>
+</head>
+<body>
+
+<!-- ═══ HOME ═══ -->
+<div class="screen active" id="homeScreen">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;width:100%;max-width:480px;">
+    <div>
+      <div class="logo">IMPOSTER</div>
+      <div class="tagline">// pass &amp; play social deduction</div>
+    </div>
+    <div class="stack">
+      <button class="btn btn-primary" onclick="goTo('setupScreen')">▶ &nbsp;New Game</button>
+      <button class="btn btn-ghost" onclick="goTo('howToScreen')">How to Play</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HOW TO PLAY ═══ -->
+<div class="screen-scroll" id="howToScreen" style="gap:18px;">
+  <div style="width:100%;max-width:480px;"><button class="back-btn" onclick="goTo('homeScreen')">← Back</button></div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;text-align:center;line-height:1;">HOW TO<br>PLAY</div>
+  <div class="stack">
+    <div class="card">
+      <div class="card-title">The Setup</div>
+      <p style="font-size:14px;color:#ccc;line-height:1.75;">Everyone taps their name to privately see their role. One or more players are secretly the <span style="color:var(--accent);font-weight:600;">Imposter</span> — they get a cryptic hint instead of the real word.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">The Three Hint Modes</div>
+      <div style="display:flex;flex-direction:column;gap:11px;font-size:14px;line-height:1.65;color:#ccc;">
+        <div><span style="color:var(--accent2);font-weight:600;">🏷️ Category</span> — Imposter only knows the category. Hardest mode.</div>
+        <div><span style="color:var(--accent2);font-weight:600;">💬 Word Hint</span> — Imposter gets the category + one sneaky word hint.</div>
+        <div><span style="color:var(--accent2);font-weight:600;">🎭 Charades</span> — No talking! Everyone must act out or make noises only.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Playing the Game</div>
+      <p style="font-size:14px;color:#ccc;line-height:1.75;">Go around the table. Each player gives <strong style="color:var(--text);">one clue</strong> related to the word. Then everyone votes to eliminate who they think is the Imposter.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Winning</div>
+      <p style="font-size:14px;color:#ccc;line-height:1.75;"><span style="color:var(--success);font-weight:600;">Crewmates win</span> by eliminating all Imposters.<br><span style="color:var(--accent);font-weight:600;">Imposters win</span> by surviving the vote — or by correctly guessing the word after being caught.</p>
+    </div>
+  </div>
+  <div style="width:100%;max-width:480px;padding-bottom:8px;">
+    <button class="btn btn-primary" onclick="goTo('setupScreen')">Let's Play →</button>
+  </div>
+</div>
+
+<!-- ═══ SETUP ═══ -->
+<div class="screen-scroll" id="setupScreen" style="gap:16px;">
+  <div style="width:100%;max-width:480px;"><button class="back-btn" onclick="goTo('homeScreen')">← Back</button></div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;text-align:center;">GAME SETUP</div>
+  <div class="stack">
+
+    <div class="card">
+      <div class="card-title">Number of Players</div>
+      <div class="slider-row">
+        <span class="slider-val yellow" id="playerCountVal">4</span>
+        <input type="range" id="playerSlider" min="3" max="30" value="4" oninput="updatePlayerCount()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Number of Imposters</div>
+      <div class="slider-row">
+        <span class="slider-val red" id="imposterCountVal">1</span>
+        <input type="range" id="imposterSlider" min="1" max="1" value="1" oninput="updateImposterCount()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Imposter Hint Mode</div>
+      <div class="mode-grid">
+        <button class="mode-btn selected" data-mode="category" onclick="selectMode(this)">
+          <span class="mode-icon">🏷️</span>
+          <span>Category Only<span class="mode-desc">Imposter only knows the broad category</span></span>
+        </button>
+        <button class="mode-btn" data-mode="normal" onclick="selectMode(this)">
+          <span class="mode-icon">💬</span>
+          <span>Word Hint<span class="mode-desc">Imposter gets one cryptic word clue</span></span>
+        </button>
+        <button class="mode-btn" data-mode="charades" onclick="selectMode(this)">
+          <span class="mode-icon">🎭</span>
+          <span>Charades<span class="mode-desc">No words — act it out, make noises only</span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;">Categories <span style="color:var(--muted);font-size:8px;letter-spacing:1px;">— select at least one</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <button class="cat-btn selected" data-cat="NBA" onclick="toggleCat(this)"><span class="cat-icon">🏀</span>NBA</button>
+        <button class="cat-btn selected" data-cat="Silly" onclick="toggleCat(this)"><span class="cat-icon">🤪</span>Silly</button>
+        <button class="cat-btn selected" data-cat="Animals" onclick="toggleCat(this)"><span class="cat-icon">🐾</span>Animals</button>
+        <button class="cat-btn selected" data-cat="Food" onclick="toggleCat(this)"><span class="cat-icon">🍔</span>Food</button>
+        <button class="cat-btn selected" data-cat="Objects" onclick="toggleCat(this)"><span class="cat-icon">🪑</span>Objects</button>
+        <button class="cat-btn selected" data-cat="School" onclick="toggleCat(this)"><span class="cat-icon">🎒</span>School</button>
+        <button class="cat-btn selected" data-cat="Geography" onclick="toggleCat(this)"><span class="cat-icon">🌍</span>Geography</button>
+        <button class="cat-btn selected" data-cat="History" onclick="toggleCat(this)"><span class="cat-icon">📜</span>History</button>
+        <button class="cat-btn selected" data-cat="Conspiracy" onclick="toggleCat(this)"><span class="cat-icon">🕵️</span>Conspiracy</button>
+        <button class="cat-btn selected" data-cat="Memes" onclick="toggleCat(this)"><span class="cat-icon">💻</span>Memes</button>
+        <button class="cat-btn selected" data-cat="Awkward" onclick="toggleCat(this)"><span class="cat-icon">😬</span>Awkward</button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="goToNames()">Next: Enter Names →</button>
+  </div>
+  <div style="height:12px;"></div>
+</div>
+
+<!-- ═══ NAMES ═══ -->
+<div class="screen-scroll" id="namesScreen" style="gap:18px;">
+  <div style="width:100%;max-width:480px;"><button class="back-btn" onclick="goTo('setupScreen')">← Back</button></div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;text-align:center;">PLAYER NAMES</div>
+  <div class="card" style="max-width:480px;width:100%;">
+    <div class="card-title">Enter each player's name</div>
+    <div class="player-list" id="playerNameList"></div>
+  </div>
+  <div style="width:100%;max-width:480px;padding-bottom:8px;">
+    <button class="btn btn-primary" onclick="startGame()">Start Game →</button>
+  </div>
+</div>
+
+<!-- ═══ PICKER — tap your name to see your role ═══ -->
+<div class="screen" id="pickerScreen">
+  <div class="picker-title">TAP YOUR<br>NAME</div>
+  <p class="picker-sub">Each player secretly taps their own name to see their role. Don't show anyone else!</p>
+  <div class="picker-progress">
+    <span id="pickerSeenCount">0</span> / <span id="pickerTotalCount">0</span> players ready
+  </div>
+  <div class="picker-grid" id="pickerGrid"></div>
+</div>
+
+<!-- ═══ REVEAL ═══ -->
+<div class="screen" id="revealScreen">
+  <div class="reveal-label">Your Role</div>
+  <div class="reveal-role" id="revealRole">CREWMATE</div>
+  <div class="reveal-word-box fadeUp">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;" id="revealWordLabel">The Word</div>
+    <div class="reveal-word" id="revealWord">WORD</div>
+    <div class="reveal-hint-label" id="revealHintLabel" style="display:none;">Your Hint</div>
+    <div class="reveal-hint" id="revealHint" style="display:none;"></div>
+  </div>
+  <div id="revealCharadesBanner" class="charades-banner" style="display:none;">
+    🎭 <strong>Charades Mode!</strong> You may <strong>not say any words</strong>. Act it out or make noises only.
+  </div>
+  <p class="reveal-instruction" id="revealInstruction"></p>
+  <button class="btn btn-primary" style="max-width:380px;" onclick="doneReading()">Got It 👁 — Hide</button>
+</div>
+
+<!-- ═══ ALL DONE GATE ═══ -->
+<div id="allDoneScreen">
+  <div style="font-size:64px;">🕵️</div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,12vw,60px);letter-spacing:4px;line-height:1;">EVERYONE'S<br>READY</div>
+  <p style="font-size:14px;color:var(--muted);line-height:1.7;max-width:300px;text-align:center;">All players have seen their role. Discuss and find the Imposter!</p>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 24px;max-width:340px;width:100%;text-align:center;">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Starting Player</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:var(--accent2);line-height:1;" id="startingPlayerName">—</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;">goes first — give your hint!</div>
+  </div>
+  <button class="btn btn-green" style="max-width:340px;margin-top:4px;" onclick="showSummary()">Reveal Roles 🔍</button>
+  <p style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;text-align:center;">Only tap after voting is done</p>
+</div>
+
+<!-- ═══ SUMMARY ═══ -->
+<div class="screen-scroll" id="summaryScreen" style="gap:18px;">
+  <div style="width:100%;max-width:480px;"><button class="back-btn" onclick="goTo('homeScreen')">← Home</button></div>
+  <div class="summary-title">GAME<br>SUMMARY</div>
+  <div class="word-reveal-box">
+    <div class="word-reveal-label">The Word Was</div>
+    <div class="word-reveal-word" id="summaryWord">—</div>
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-top:6px;" id="summaryCategory"></div>
+  </div>
+  <div class="player-summary-list" id="playerSummaryList"></div>
+  <div style="width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px;padding-bottom:8px;">
+    <button class="btn btn-primary" onclick="playAgainSameSettings()">Play Again (Same Settings)</button>
+    <button class="btn btn-secondary" onclick="goTo('setupScreen')">Change Settings</button>
+    <button class="btn btn-ghost" onclick="goTo('homeScreen')">Home</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  CONFIG — change to your GitHub raw URL if needed
+//  e.g. https://raw.githubusercontent.com/USERNAME/REPO/main/words.json
+// ════════════════════════════════════════════════
+const WORDS_URL = 'words.json';
+
+let WORDS = null;
+
+async function loadWords() {
+  try {
+    const res = await fetch(WORDS_URL + '?v=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    WORDS = await res.json();
+  } catch (e) {
+    document.getElementById('homeScreen').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:20px;padding:24px;text-align:center;">
+        <div style="font-size:48px;">⚠️</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;color:var(--accent);">Could Not Load Words</div>
+        <p style="color:var(--muted);font-size:14px;line-height:1.7;max-width:300px;">Make sure <code style="color:var(--accent2)">words.json</code> is in the same folder as <code style="color:var(--accent2)">index.html</code> on GitHub.</p>
+        <button class="btn btn-secondary" style="max-width:260px;" onclick="location.reload()">Try Again</button>
+      </div>`;
+  }
+}
+
+// ════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════
+let state = {
+  playerCount: 4,
+  imposterCount: 1,
+  hintMode: 'category',
+  selectedCats: new Set(['NBA','Silly','Animals','Food','Objects','School','Geography','History','Conspiracy','Memes','Awkward']),
+  playerNames: [],
+  assignments: [],    // [{name, isImposter}]
+  seenPlayers: new Set(),
+  currentRevealIdx: null,
+  secretWord: null,
+  secretCategory: null
+};
+
+// ════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════
+function goTo(id) {
+  document.querySelectorAll('.screen, .screen-scroll').forEach(s => s.classList.remove('active'));
+  document.getElementById('allDoneScreen').classList.remove('active');
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ════════════════════════════════════════════════
+//  SETUP
+// ════════════════════════════════════════════════
+function updateSliderTrack(slider, color) {
+  const min = +slider.min, max = +slider.max, val = +slider.value;
+  const pct = max === min ? 0 : ((val - min) / (max - min)) * 100;
+  slider.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
+}
+
+function updatePlayerCount() {
+  const v = +document.getElementById('playerSlider').value;
+  state.playerCount = v;
+  document.getElementById('playerCountVal').textContent = v;
+  updateSliderTrack(document.getElementById('playerSlider'), 'var(--accent2)');
+  const maxImp = Math.max(1, Math.floor((v - 1) / 2));
+  const impSlider = document.getElementById('imposterSlider');
+  impSlider.max = maxImp;
+  if (+impSlider.value > maxImp) impSlider.value = maxImp;
+  state.imposterCount = +impSlider.value;
+  document.getElementById('imposterCountVal').textContent = impSlider.value;
+  updateSliderTrack(impSlider, 'var(--accent)');
+}
+
+function updateImposterCount() {
+  const v = +document.getElementById('imposterSlider').value;
+  state.imposterCount = v;
+  document.getElementById('imposterCountVal').textContent = v;
+  updateSliderTrack(document.getElementById('imposterSlider'), 'var(--accent)');
+}
+
+function selectMode(btn) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.hintMode = btn.dataset.mode;
+}
+
+function toggleCat(btn) {
+  const cat = btn.dataset.cat;
+  if (state.selectedCats.has(cat)) {
+    if (state.selectedCats.size === 1) return;
+    state.selectedCats.delete(cat);
+    btn.classList.remove('selected');
+  } else {
+    state.selectedCats.add(cat);
+    btn.classList.add('selected');
+  }
+}
+
+// ════════════════════════════════════════════════
+//  NAMES
+// ════════════════════════════════════════════════
+function goToNames() {
+  state.playerCount = +document.getElementById('playerSlider').value;
+  state.imposterCount = +document.getElementById('imposterSlider').value;
+  buildNameInputs();
+  goTo('namesScreen');
+}
+
+function buildNameInputs() {
+  const list = document.getElementById('playerNameList');
+  list.innerHTML = '';
+  for (let i = 0; i < state.playerCount; i++) {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <span class="player-num">${i+1}</span>
+      <input type="text" inputmode="text" autocomplete="off"
+             placeholder="Player ${i+1}" value="${state.playerNames[i] || ''}"
+             oninput="state.playerNames[${i}] = this.value" maxlength="20">
+    `;
+    list.appendChild(row);
+  }
+}
+
+// ════════════════════════════════════════════════
+//  START GAME
+// ════════════════════════════════════════════════
+function startGame() {
+  if (!WORDS) { alert('Words not loaded yet — please wait a moment and try again.'); return; }
+
+  state.playerNames = [];
+  for (let i = 0; i < state.playerCount; i++) {
+    const inp = document.querySelectorAll('#playerNameList input')[i];
+    state.playerNames[i] = (inp && inp.value.trim()) || `Player ${i+1}`;
+  }
+
+  const catKeys = [...state.selectedCats].filter(k => WORDS[k]);
+  if (!catKeys.length) { alert('No valid categories selected.'); return; }
+  const catKey = catKeys[Math.floor(Math.random() * catKeys.length)];
+  const catData = WORDS[catKey];
+  state.secretWord = catData.words[Math.floor(Math.random() * catData.words.length)];
+  state.secretCategory = catData.label;
+
+  const indices = shuffle([...Array(state.playerCount).keys()]);
+  const imposterIndices = new Set(indices.slice(0, state.imposterCount));
+
+  state.assignments = state.playerNames.map((name, i) => ({
+    name,
+    isImposter: imposterIndices.has(i)
+  }));
+
+  state.seenPlayers = new Set();
+  state.currentRevealIdx = null;
+
+  buildPickerGrid();
+  goTo('pickerScreen');
+}
+
+// ════════════════════════════════════════════════
+//  PICKER SCREEN
+// ════════════════════════════════════════════════
+function buildPickerGrid() {
+  const grid = document.getElementById('pickerGrid');
+  grid.innerHTML = '';
+
+  document.getElementById('pickerSeenCount').textContent = '0';
+  document.getElementById('pickerTotalCount').textContent = state.playerCount;
+
+  state.assignments.forEach((player, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'picker-btn';
+    btn.dataset.idx = idx;
+    btn.innerHTML = `
+      <span class="picker-initial">${player.name[0].toUpperCase()}</span>
+      <span class="picker-check">✓</span>
+      <span class="picker-name">${player.name}</span>
+    `;
+    btn.onclick = () => tapPlayerBtn(idx);
+    grid.appendChild(btn);
+  });
+}
+
+function tapPlayerBtn(idx) {
+  // If already seen, do nothing
+  if (state.seenPlayers.has(idx)) return;
+  state.currentRevealIdx = idx;
+  showReveal(idx);
+}
+
+// ════════════════════════════════════════════════
+//  REVEAL
+// ════════════════════════════════════════════════
+function showReveal(idx) {
+  const player = state.assignments[idx];
+  const isImposter = player.isImposter;
+  const mode = state.hintMode;
+  const entry = state.secretWord;
+
+  const roleEl   = document.getElementById('revealRole');
+  const wordEl   = document.getElementById('revealWord');
+  const wordLbl  = document.getElementById('revealWordLabel');
+  const hintLbl  = document.getElementById('revealHintLabel');
+  const hintEl   = document.getElementById('revealHint');
+  const instrEl  = document.getElementById('revealInstruction');
+  const charBanner = document.getElementById('revealCharadesBanner');
+
+  charBanner.style.display = 'none';
+  hintLbl.style.display = 'none';
+  hintEl.style.display = 'none';
+
+  if (isImposter) {
+    roleEl.textContent = 'IMPOSTER';
+    roleEl.className = 'reveal-role imposter glitch';
+    setTimeout(() => roleEl.classList.remove('glitch'), 500);
+    wordLbl.textContent = 'Category';
+    wordEl.className = 'reveal-word imposter-word';
+    wordEl.textContent = state.secretCategory.toUpperCase();
+
+    if (mode === 'category') {
+      instrEl.textContent = "You only know the category. Blend in — give a convincing clue without revealing you don't know the word.";
+    } else if (mode === 'normal') {
+      hintLbl.style.display = 'block';
+      hintEl.style.display = 'block';
+      hintEl.textContent = entry.normal.toUpperCase();
+      instrEl.textContent = "You have a one-word hint. Use it wisely — don't be too obvious or too suspicious.";
+    } else if (mode === 'charades') {
+      hintLbl.style.display = 'block';
+      hintEl.style.display = 'block';
+      hintEl.textContent = entry.charades.toUpperCase();
+      charBanner.style.display = 'block';
+      instrEl.textContent = "No words! Act it out or make sounds only. Your hint guides what to mime.";
+    }
+  } else {
+    roleEl.textContent = 'CREWMATE';
+    roleEl.className = 'reveal-role crewmate';
+    wordLbl.textContent = 'The Word';
+    wordEl.className = 'reveal-word crewmate-word';
+    wordEl.textContent = entry.word.toUpperCase();
+
+    if (mode === 'charades') {
+      charBanner.style.display = 'block';
+      instrEl.textContent = "No words allowed! Act it out or make noises only.";
+    } else {
+      instrEl.textContent = "Give one clue per round. Help the group spot the Imposter — but don't make it too obvious!";
+    }
+  }
+
+  goTo('revealScreen');
+}
+
+// ════════════════════════════════════════════════
+//  DONE READING — back to picker
+// ════════════════════════════════════════════════
+function doneReading() {
+  const idx = state.currentRevealIdx;
+  state.seenPlayers.add(idx);
+
+  // Mark the button as seen
+  const btn = document.querySelector(`#pickerGrid [data-idx="${idx}"]`);
+  if (btn) btn.classList.add('seen');
+
+  // Update counter
+  document.getElementById('pickerSeenCount').textContent = state.seenPlayers.size;
+
+  // If everyone has seen their role, go to all-done gate
+  if (state.seenPlayers.size >= state.playerCount) {
+    const randomIdx = Math.floor(Math.random() * state.assignments.length);
+    document.getElementById('startingPlayerName').textContent =
+      state.assignments[randomIdx].name.toUpperCase();
+    document.querySelectorAll('.screen, .screen-scroll').forEach(s => s.classList.remove('active'));
+    document.getElementById('allDoneScreen').classList.add('active');
+  } else {
+    goTo('pickerScreen');
+  }
+}
+
+// ════════════════════════════════════════════════
+//  SUMMARY
+// ════════════════════════════════════════════════
+function showSummary() {
+  document.getElementById('allDoneScreen').classList.remove('active');
+  document.getElementById('summaryWord').textContent = state.secretWord.word.toUpperCase();
+  document.getElementById('summaryCategory').textContent = state.secretCategory;
+
+  const list = document.getElementById('playerSummaryList');
+  list.innerHTML = '';
+  state.assignments.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'player-summary-row';
+    row.innerHTML = `
+      <span class="player-summary-name">${p.name}</span>
+      <span class="player-summary-role ${p.isImposter ? 'role-imposter' : 'role-crewmate'}">
+        ${p.isImposter ? '🔪 Imposter' : '✅ Crewmate'}
+      </span>
+    `;
+    list.appendChild(row);
+  });
+
+  goTo('summaryScreen');
+}
+
+function playAgainSameSettings() { startGame(); }
+
+// ════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadWords();
+  updatePlayerCount();
+});
+</script>
+</body>
+</html>
